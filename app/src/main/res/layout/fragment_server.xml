@@ -66,6 +66,13 @@
 
 </RelativeLayout>
 
+    <EditText
+        android:id="@+id/ipAddressTextInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:text="192.168.75.2" />
 
 
 </LinearLayout>

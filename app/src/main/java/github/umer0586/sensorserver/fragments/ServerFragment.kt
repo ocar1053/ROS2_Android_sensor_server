@@ -19,6 +19,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.permissionx.guolindev.PermissionX
 import github.umer0586.sensorserver.R
 import github.umer0586.sensorserver.databinding.FragmentServerBinding
+import github.umer0586.sensorserver.sensor.GpsHandler
 import github.umer0586.sensorserver.service.RosbridgeService
 import github.umer0586.sensorserver.service.ServiceBindHelper
 import github.umer0586.sensorserver.setting.AppSettings
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
 
 class ServerFragment : Fragment() {
     private lateinit var stepCounterHandler: StepCounterHandler
+    private lateinit var GpsHandler: GpsHandler
     private var websocketService: RosbridgeService? = null
     private lateinit var serviceBindHelper: ServiceBindHelper
     private lateinit var appSettings: AppSettings
@@ -79,25 +81,37 @@ class ServerFragment : Fragment() {
         binding.startButton.setOnClickListener { v ->
             binding.startButton.isEnabled = false
 
-            if (v.tag == "stopped") {
+            // request permission
+            PermissionX.init(this)
+                .permissions(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACTIVITY_RECOGNITION
+                )
+                .request { allGranted, _, _ ->
+                    if (allGranted) {
 
-                connectToRosbridge { success ->
-                    if (success) {
-                        v.tag = "started"
-                        binding.startButton.text = "STOP"
+                        if (v.tag == "stopped") {
+                            connectToRosbridge { success ->
+                                if (success) {
+                                    v.tag = "started"
+                                    binding.startButton.text = "STOP"
+                                } else {
+                                    v.tag = "stopped"
+                                    binding.startButton.text = "START"
+                                }
+                                binding.startButton.isEnabled = true
+                            }
+                        } else {
+                            disconnectFromRosbridge()
+                            v.tag = "stopped"
+                            binding.startButton.text = "START"
+                            binding.startButton.isEnabled = true
+                        }
                     } else {
-                        v.tag = "stopped"
-                        binding.startButton.text = "START"
+                        Toast.makeText(requireContext(), "必要權限未授予", Toast.LENGTH_SHORT).show()
+                        binding.startButton.isEnabled = true
                     }
-                    binding.startButton.isEnabled = true
                 }
-            } else {
-
-                disconnectFromRosbridge()
-                v.tag = "stopped"
-                binding.startButton.text = "START"
-                binding.startButton.isEnabled = true
-            }
         }
 
 
@@ -149,6 +163,7 @@ class ServerFragment : Fragment() {
                     connectToRosbridge = true
                     //advertised
                     websocketService?.advertiseTopic("/step_counter", "std_msgs/Int32")
+                    websocketService?.advertiseTopic("/gps", "sensor_msgs/msg/NavSatFix")
 
                     // initial
                     stepCounterHandler = StepCounterHandler(requireContext()) { currentStepCount ->
@@ -159,8 +174,39 @@ class ServerFragment : Fragment() {
                         Log.d(TAG, "Sent real step data: $currentStepCount to /step_counter")
                     }
 
+                    GpsHandler = GpsHandler(requireContext()) { location ->
+                        val gpsData = org.json.JSONObject().apply {
+                            // header for time and frame_id
+                            put("header", org.json.JSONObject().apply {
+                                put("stamp", org.json.JSONObject().apply {
+
+                                    put("secs", System.currentTimeMillis() / 1000)
+                                    put("nsecs", 0)
+                                })
+                                put("frame_id", "gps")
+                            })
+                            // status 0 for valid data
+                            put("status", org.json.JSONObject().apply {
+                                put("status", 0)
+                                put("service", 1)
+                            })
+                            // gps data
+                            Log.d(TAG, "location: ${location.latitude}, ${location.longitude}, ${location.altitude}")
+                            put("latitude", location.latitude)
+                            put("longitude", location.longitude)
+                            put("altitude", location.altitude)
+                            // covariance parameters
+                            put("position_covariance", org.json.JSONArray(listOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)))
+                            put("position_covariance_type", 0)
+                        }
+
+                        websocketService?.publishMessage("/gps", gpsData)
+
+                    }
+
                     // listening
                     stepCounterHandler.startListening()
+                    GpsHandler.startListening()
                     callback(true)
                 } else {
                     showMessage("connection refuse, ip is wrong")

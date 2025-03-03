@@ -66,12 +66,6 @@ class RosbridgeService : Service() {
     fun closeConnection() {
         webSocket?.close(1000, "Service destroyed")
     }
-    fun subscribeToTopic(topicName: String) {
-        val subscribeMessage = JSONObject()
-        subscribeMessage.put("op", "subscribe")
-        subscribeMessage.put("topic", topicName)
-        webSocket?.send(subscribeMessage.toString())
-    }
 
     fun advertiseTopic(topicName: String, messageType: String) {
         val advertiseMessage = JSONObject()

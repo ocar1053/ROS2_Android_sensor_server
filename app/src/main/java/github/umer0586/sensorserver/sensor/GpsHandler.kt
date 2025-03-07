@@ -15,8 +15,8 @@ class GpsHandler(
         LocationServices.getFusedLocationProviderClient(context)
 
     // gps update parameters
-    private val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
-        .setMinUpdateIntervalMillis(5000)
+    private val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+        .setMinUpdateIntervalMillis(500)
         .build()
 
     // callback for location updates

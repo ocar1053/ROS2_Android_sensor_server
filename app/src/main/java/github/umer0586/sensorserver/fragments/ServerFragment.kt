@@ -2,6 +2,7 @@ package github.umer0586.sensorserver.fragments
 
 import android.content.Context
 import android.content.Intent
+import android.hardware.SensorManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
@@ -20,6 +21,7 @@ import com.permissionx.guolindev.PermissionX
 import github.umer0586.sensorserver.R
 import github.umer0586.sensorserver.databinding.FragmentServerBinding
 import github.umer0586.sensorserver.sensor.GpsHandler
+import github.umer0586.sensorserver.sensor.ImuHandler
 import github.umer0586.sensorserver.service.RosbridgeService
 import github.umer0586.sensorserver.service.ServiceBindHelper
 import github.umer0586.sensorserver.setting.AppSettings
@@ -31,13 +33,14 @@ import kotlinx.coroutines.launch
 class ServerFragment : Fragment() {
     private lateinit var stepCounterHandler: StepCounterHandler
     private lateinit var GpsHandler: GpsHandler
+    private lateinit var imuHandler: ImuHandler
     private var websocketService: RosbridgeService? = null
     private lateinit var serviceBindHelper: ServiceBindHelper
     private lateinit var appSettings: AppSettings
     private var connectToRosbridge: Boolean = false
     private lateinit var bottomSheetDialog: BottomSheetDialog
     private lateinit var bottomSheetContent: View
-
+    private lateinit var sensorManager: SensorManager
     private var _binding : FragmentServerBinding? = null
     private val binding get() = _binding!!
 
@@ -58,7 +61,7 @@ class ServerFragment : Fragment() {
         bottomSheetDialog.setContentView(bottomSheetContent)
 
         appSettings = AppSettings(requireContext())
-
+        sensorManager = requireContext().applicationContext.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         serviceBindHelper = ServiceBindHelper(
             context = requireContext(),
@@ -164,9 +167,9 @@ class ServerFragment : Fragment() {
                     //advertised
                     websocketService?.advertiseTopic("/step_counter", "std_msgs/Int32")
                     websocketService?.advertiseTopic("/gps", "sensor_msgs/msg/NavSatFix")
-
+                    websocketService?.advertiseTopic("/imu", "sensor_msgs/msg/Imu")
                     // initial
-                    stepCounterHandler = StepCounterHandler(requireContext()) { currentStepCount ->
+                    stepCounterHandler = StepCounterHandler(sensorManager ,requireContext()) { currentStepCount ->
                         val stepData = org.json.JSONObject().apply {
                             put("data", currentStepCount)
                         }
@@ -204,7 +207,14 @@ class ServerFragment : Fragment() {
 
                     }
 
+                    imuHandler = ImuHandler(sensorManager) { imuData ->
+                        Log.d(TAG, "Sent imu data: $imuData to /imu")
+                        websocketService?.publishMessage("/imu", imuData)
+                    }
+
+
                     // listening
+                    imuHandler.startListening()
                     stepCounterHandler.startListening()
                     GpsHandler.startListening()
                     callback(true)

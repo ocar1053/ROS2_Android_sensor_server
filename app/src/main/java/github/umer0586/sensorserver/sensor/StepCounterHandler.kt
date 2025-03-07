@@ -7,11 +7,11 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 
 class StepCounterHandler(
+    private val sensorManager: SensorManager,
     context: Context,
     private val onStepCountUpdated: (Int) -> Unit // callback
 ) : SensorEventListener {
 
-    private var sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private var stepCounterSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
     private var initialStepCount = -1f
 

@@ -174,7 +174,6 @@ class ServerFragment : Fragment() {
                             put("data", currentStepCount)
                         }
                         websocketService?.publishMessage("/step_counter", stepData)
-                        Log.d(TAG, "Sent real step data: $currentStepCount to /step_counter")
                     }
 
                     GpsHandler = GpsHandler(requireContext()) { location ->
@@ -194,7 +193,6 @@ class ServerFragment : Fragment() {
                                 put("service", 1)
                             })
                             // gps data
-                            Log.d(TAG, "location: ${location.latitude}, ${location.longitude}, ${location.altitude}")
                             put("latitude", location.latitude)
                             put("longitude", location.longitude)
                             put("altitude", location.altitude)
@@ -207,8 +205,7 @@ class ServerFragment : Fragment() {
 
                     }
 
-                    imuHandler = ImuHandler(sensorManager) { imuData ->
-                        Log.d(TAG, "Sent imu data: $imuData to /imu")
+                    imuHandler = ImuHandler((requireContext()),sensorManager) { imuData ->
                         websocketService?.publishMessage("/imu", imuData)
                     }
 

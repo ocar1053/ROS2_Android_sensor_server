@@ -68,7 +68,7 @@ dependencies {
     implementation 'com.yanzhenjie.andserver:api:2.1.12'
     kapt 'com.yanzhenjie.andserver:processor:2.1.12'
     implementation 'com.guolindev.permissionx:permissionx:1.8.0'
-    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
 
 
 }

@@ -4,24 +4,37 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
+import com.google.android.gms.location.DeviceOrientation
+import com.google.android.gms.location.DeviceOrientationListener
+import com.google.android.gms.location.DeviceOrientationRequest
+import com.google.android.gms.location.FusedOrientationProviderClient
+import com.google.android.gms.location.LocationServices
+import java.util.concurrent.Executors
 import kotlin.math.PI
 
 class ImuHandler(
+    context: Context,
     private val sensorManager: SensorManager,
     private val onImuDataUpdated: (imuJson: JSONObject) -> Unit // callback
 ) : SensorEventListener {
 
     private var accelerometerSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private var gyroscopeSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-    private var rotationVectorSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-
-    // store latest sensor data
+    private val fusedOrientationProviderClient: FusedOrientationProviderClient =
+        LocationServices.getFusedOrientationProviderClient(context)
+    private val fusedExecutor = Executors.newSingleThreadExecutor()
+    private val fusedOrientationListener = DeviceOrientationListener { orientation: DeviceOrientation ->
+        // getAttitude() return [qx, qy, qz, qw]
+        latestOrientation = orientation.getAttitude()
+        onImuDataUpdated(buildImuJson())
+    }    // store latest sensor data
     private var latestAccelerometer = FloatArray(3)
     private var latestGyroscope = FloatArray(3)
     // store latest orientation quaternion to represent device orientation
-    private var latestOrientation = FloatArray(4)
+    private var latestOrientation = FloatArray(4) { 0f }.apply { this[3] = 1f }
 
     fun startListening() {
         accelerometerSensor?.let {
@@ -30,9 +43,10 @@ class ImuHandler(
         gyroscopeSensor?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
-        rotationVectorSensor?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
+        val request = DeviceOrientationRequest.Builder(DeviceOrientationRequest.OUTPUT_PERIOD_DEFAULT).build()
+        fusedOrientationProviderClient.requestOrientationUpdates(request, fusedExecutor, fusedOrientationListener)
+            .addOnSuccessListener {  }
+            .addOnFailureListener { }
     }
 
     fun stopListening() {
@@ -48,16 +62,8 @@ class ImuHandler(
                 Sensor.TYPE_GYROSCOPE -> {
                     latestGyroscope = e.values.clone()
                 }
-                Sensor.TYPE_ROTATION_VECTOR -> {
-                    //convert rotation vector to quaternion
-                    val quat = FloatArray(4)
-                    // rotation vector is in the format (x*sin(θ/2), y*sin(θ/2), z*sin(θ/2), cos(θ/2))
-                    SensorManager.getQuaternionFromVector(quat, e.values)
-                    latestOrientation = quat
-                }
             }
 
-            onImuDataUpdated(buildImuJson())
         }
     }
 

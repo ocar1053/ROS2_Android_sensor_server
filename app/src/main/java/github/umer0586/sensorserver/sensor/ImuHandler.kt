@@ -21,7 +21,7 @@ class ImuHandler(
     private val onImuDataUpdated: (imuJson: JSONObject) -> Unit // callback
 ) : SensorEventListener {
 
-    private var accelerometerSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    private var accelerometerSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
     private var gyroscopeSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     private val fusedOrientationProviderClient: FusedOrientationProviderClient =
         LocationServices.getFusedOrientationProviderClient(context)
@@ -29,7 +29,7 @@ class ImuHandler(
     private val fusedOrientationListener = DeviceOrientationListener { orientation: DeviceOrientation ->
         // getAttitude() return [qx, qy, qz, qw]
         latestOrientation = orientation.getAttitude()
-        onImuDataUpdated(buildImuJson())
+
     }    // store latest sensor data
     private var latestAccelerometer = FloatArray(3)
     private var latestGyroscope = FloatArray(3)
@@ -56,14 +56,15 @@ class ImuHandler(
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let { e ->
             when (e.sensor.type) {
-                Sensor.TYPE_ACCELEROMETER -> {
+                Sensor.TYPE_LINEAR_ACCELERATION -> {
                     latestAccelerometer = e.values.clone()
+
                 }
                 Sensor.TYPE_GYROSCOPE -> {
                     latestGyroscope = e.values.clone()
                 }
             }
-
+            onImuDataUpdated(buildImuJson())
         }
     }
 

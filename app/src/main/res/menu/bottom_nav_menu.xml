@@ -7,10 +7,6 @@
         android:icon="@drawable/ic_baseline_graphic_eq_24"
         android:title="Server" />
 
-    <item
-        android:id="@+id/navigation_connections"
-        android:icon="@drawable/ic_connections"
-        android:title="@string/title_connections" />
 
     <item
         android:id="@+id/navigation_available_sensors"

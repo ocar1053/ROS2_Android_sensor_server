@@ -22,6 +22,7 @@ import github.umer0586.sensorserver.R
 import github.umer0586.sensorserver.databinding.FragmentServerBinding
 import github.umer0586.sensorserver.sensor.GpsHandler
 import github.umer0586.sensorserver.sensor.ImuHandler
+import github.umer0586.sensorserver.sensor.OdometryHandler
 import github.umer0586.sensorserver.service.RosbridgeService
 import github.umer0586.sensorserver.service.ServiceBindHelper
 import github.umer0586.sensorserver.setting.AppSettings
@@ -34,6 +35,7 @@ class ServerFragment : Fragment() {
     private lateinit var stepCounterHandler: StepCounterHandler
     private lateinit var GpsHandler: GpsHandler
     private lateinit var imuHandler: ImuHandler
+    private lateinit var OdometryHandler: OdometryHandler
     private var websocketService: RosbridgeService? = null
     private lateinit var serviceBindHelper: ServiceBindHelper
     private lateinit var appSettings: AppSettings
@@ -143,13 +145,6 @@ class ServerFragment : Fragment() {
             !(isLocalHostOptionEnable() || isAllInterfaceOptionEnabled() || isHotspotOptionEnabled())
         }
 
-        if (noOptionEnabled && !wifiManager.isWifiEnabled) {
-            showMessage("Please Enable Wi-Fi")
-            callback(false)
-            return
-        }
-
-
         lifecycleScope.launch(Dispatchers.Main) {
             while (websocketService == null) {
                 delay(100)
@@ -166,8 +161,9 @@ class ServerFragment : Fragment() {
                     connectToRosbridge = true
                     //advertised
                     websocketService?.advertiseTopic("/step_counter", "std_msgs/Int32")
-                    websocketService?.advertiseTopic("/gps", "sensor_msgs/msg/NavSatFix")
-                    websocketService?.advertiseTopic("/imu", "sensor_msgs/msg/Imu")
+                    websocketService?.advertiseTopic("/gps/fix", "sensor_msgs/msg/NavSatFix")
+                    websocketService?.advertiseTopic("/imu/data", "sensor_msgs/msg/Imu")
+                    websocketService?.advertiseTopic("/odom", "nav_msgs/msg/Odometry")
                     // initial
                     stepCounterHandler = StepCounterHandler(sensorManager ,requireContext()) { currentStepCount ->
                         val stepData = org.json.JSONObject().apply {
@@ -175,8 +171,10 @@ class ServerFragment : Fragment() {
                         }
                         websocketService?.publishMessage("/step_counter", stepData)
                     }
-
-                    GpsHandler = GpsHandler(requireContext()) { location ->
+                    OdometryHandler = OdometryHandler((requireContext()),sensorManager) { odometryData ->
+                        websocketService?.publishMessage("/odom", odometryData)
+                    }
+                    GpsHandler = GpsHandler(requireContext(),OdometryHandler) { location ->
                         val gpsData = org.json.JSONObject().apply {
                             // header for time and frame_id
                             put("header", org.json.JSONObject().apply {
@@ -201,19 +199,21 @@ class ServerFragment : Fragment() {
                             put("position_covariance_type", 0)
                         }
 
-                        websocketService?.publishMessage("/gps", gpsData)
+                        websocketService?.publishMessage("/gps/fix", gpsData)
 
                     }
 
                     imuHandler = ImuHandler((requireContext()),sensorManager) { imuData ->
-                        websocketService?.publishMessage("/imu", imuData)
+                        websocketService?.publishMessage("/imu/data", imuData)
                     }
+
 
 
                     // listening
                     imuHandler.startListening()
                     stepCounterHandler.startListening()
                     GpsHandler.startListening()
+                    OdometryHandler.startListening()
                     callback(true)
                 } else {
                     showMessage("connection refuse, ip is wrong")

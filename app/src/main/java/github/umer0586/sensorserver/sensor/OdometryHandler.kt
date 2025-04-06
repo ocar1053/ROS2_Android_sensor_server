@@ -25,7 +25,7 @@ class OdometryHandler(
 
     private val gyroscopeSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
 
-    // 用於取得 fused orientation（Google 提供的 API）
+
     private val fusedOrientationProviderClient: FusedOrientationProviderClient =
         LocationServices.getFusedOrientationProviderClient(context)
     private val fusedExecutor = Executors.newSingleThreadExecutor()
@@ -33,20 +33,15 @@ class OdometryHandler(
         latestOrientation = orientation.getAttitude()
     }
 
-    // 感測器原始資料
     private var latestGyroscope = FloatArray(3)
-    // 預設單位四元數 (w=1)
     private var latestOrientation = FloatArray(4) { 0f }.apply { this[3] = 1f }
 
-    // 經由積分獲取的位置與速度（示範用，長時間會有漂移）
+
     private var position = FloatArray(3) { 0f }
     private var gpsSpeed: Float = 0f
     private var gpsBearing: Float = 0f
     private var lastGpsTime: Long = -1L
 
-    /**
-     * 開始監聽感測器
-     */
     fun startListening() {
         gyroscopeSensor?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
@@ -57,9 +52,6 @@ class OdometryHandler(
             .addOnFailureListener { }
     }
 
-    /**
-     * 停止監聽感測器
-     */
     fun stopListening() {
         sensorManager.unregisterListener(this)
         fusedOrientationProviderClient.removeOrientationUpdates(fusedOrientationListener)
@@ -77,23 +69,21 @@ class OdometryHandler(
             lastGpsTime = currentGpsTime
             return
         }
-        // 計算兩次 GPS 更新的時間間隔 (秒)
+
         val dt = (currentGpsTime - lastGpsTime) / 1000.0f
         lastGpsTime = currentGpsTime
 
-        // 將 gpsBearing 轉為弧度，計算 x、y 分量
+
         val bearingRadians = Math.toRadians(gpsBearing.toDouble())
         val vx = gpsSpeed * cos(bearingRadians).toFloat()
         val vy = gpsSpeed * sin(bearingRadians).toFloat()
 
-        // 更新位置 (假設 z 軸不變)
+
         position[0] += (vx * dt)
         position[1] += (vy * dt)
-        // 若需要，可更新 position[2] (例如利用高度差)
+
     }
-    /**
-     * 感測器數據回調
-     */
+
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let { e ->
             when (e.sensor.type) {
@@ -111,7 +101,7 @@ class OdometryHandler(
     private fun buildOdometryJson(): JSONObject {
         val odomJson = JSONObject()
 
-        // Header: 時間戳與座標系
+        // Header: timestamp and frame_id
         val currentTime = System.currentTimeMillis()
         val header = JSONObject().apply {
             put("stamp", JSONObject().apply {
@@ -143,7 +133,7 @@ class OdometryHandler(
         }
         val poseWithCovariance = JSONObject().apply {
             put("pose", innerPose)
-            // covariance 可以根據實際需求填寫，這裡暫時全 0
+            // covariance  0
             put("covariance", JSONArray(List(36) { 0.0 }))
         }
         odomJson.put("pose", poseWithCovariance)

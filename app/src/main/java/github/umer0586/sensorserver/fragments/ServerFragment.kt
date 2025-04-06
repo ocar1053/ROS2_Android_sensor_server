@@ -25,7 +25,6 @@ import github.umer0586.sensorserver.sensor.ImuHandler
 import github.umer0586.sensorserver.sensor.OdometryHandler
 import github.umer0586.sensorserver.service.RosbridgeService
 import github.umer0586.sensorserver.service.ServiceBindHelper
-import github.umer0586.sensorserver.setting.AppSettings
 import github.umer0586.sensorserver.sensor.StepCounterHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -38,7 +37,6 @@ class ServerFragment : Fragment() {
     private lateinit var OdometryHandler: OdometryHandler
     private var websocketService: RosbridgeService? = null
     private lateinit var serviceBindHelper: ServiceBindHelper
-    private lateinit var appSettings: AppSettings
     private var connectToRosbridge: Boolean = false
     private lateinit var bottomSheetDialog: BottomSheetDialog
     private lateinit var bottomSheetContent: View
@@ -61,8 +59,6 @@ class ServerFragment : Fragment() {
         bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetContent = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
         bottomSheetDialog.setContentView(bottomSheetContent)
-
-        appSettings = AppSettings(requireContext())
         sensorManager = requireContext().applicationContext.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         serviceBindHelper = ServiceBindHelper(
@@ -140,10 +136,6 @@ class ServerFragment : Fragment() {
                 .request { _, _, _ -> }
         }
 
-        val wifiManager = requireContext().applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val noOptionEnabled = with(appSettings) {
-            !(isLocalHostOptionEnable() || isAllInterfaceOptionEnabled() || isHotspotOptionEnabled())
-        }
 
         lifecycleScope.launch(Dispatchers.Main) {
             while (websocketService == null) {

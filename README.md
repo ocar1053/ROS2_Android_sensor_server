@@ -15,6 +15,18 @@ The modifications enable an Android device to send sensor data directly to rosbr
 - **ROSBridge Integration:**  
   Advertise ROS topics and publish sensor data directly to rosbridge, facilitating integration with ROS-based systems.
 
+
+## Platform Requirements
+
+- **rosbridge Server:**  
+  The rosbridge server used in this project requires a Linux environment to run.  
+
+- **Ros Distributions:**    
+  This project has been tested in a ROS2 Humble environment.  
+
+Please ensure you have a Linux system available or wsl to run the rosbridge server.
+
+
 ## How to Use
 
 1. **Start the rosbridge Server**

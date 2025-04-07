@@ -1,4 +1,4 @@
-package github.umer0586.sensorserver.service
+package github.ocar1053.ros2sensorserver.service
 
 import android.app.Service
 import android.content.Intent

@@ -1,10 +1,9 @@
-package github.umer0586.sensorserver.sensor
+package github.ocar1053.ros2sensorserver.sensor
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import com.google.android.gms.location.DeviceOrientation
@@ -13,7 +12,6 @@ import com.google.android.gms.location.DeviceOrientationRequest
 import com.google.android.gms.location.FusedOrientationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.util.concurrent.Executors
-import kotlin.math.PI
 
 class ImuHandler(
     context: Context,

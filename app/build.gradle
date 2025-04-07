@@ -9,7 +9,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId 'github.umer0586.sensorserver'
+        applicationId 'github.ocar1053.ros2sensorserver'
         minSdk 21
         targetSdk 34
         multiDexEnabled true
@@ -33,7 +33,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    namespace 'github.umer0586.sensorserver'
+    namespace 'github.ocar1053.ros2sensorserver'
 
     buildFeatures {
         viewBinding true

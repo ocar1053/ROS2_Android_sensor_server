@@ -1,4 +1,4 @@
-package github.umer0586.sensorserver.activities
+package github.ocar1053.ros2sensorserver.activities
 
 
 import android.os.Bundle
@@ -9,10 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.navigation.NavigationBarView
-import github.umer0586.sensorserver.R
-import github.umer0586.sensorserver.databinding.ActivityMainBinding
-import github.umer0586.sensorserver.fragments.AvailableSensorsFragment
-import github.umer0586.sensorserver.fragments.ServerFragment
+import github.ocar1053.ros2sensorserver.R
+import github.ocar1053.ros2sensorserver.databinding.ActivityMainBinding
+import github.ocar1053.ros2sensorserver.fragments.AvailableSensorsFragment
+import github.ocar1053.ros2sensorserver.fragments.ServerFragment
 
 
 class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener

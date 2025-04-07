@@ -1,4 +1,4 @@
-package github.umer0586.sensorserver.sensor
+package github.ocar1053.ros2sensorserver.sensor
 
 import android.content.Context
 import android.hardware.Sensor

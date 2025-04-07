@@ -1,12 +1,10 @@
-package github.umer0586.sensorserver.sensor
+package github.ocar1053.ros2sensorserver.sensor
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import android.os.Bundle
 import android.os.Looper
 import com.google.android.gms.location.*
-import github.umer0586.sensorserver.sensor.OdometryHandler
 
 class GpsHandler(
     context: Context,

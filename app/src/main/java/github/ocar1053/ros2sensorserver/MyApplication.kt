@@ -1,11 +1,8 @@
-package github.umer0586.sensorserver
+package github.ocar1053.ros2sensorserver
 
 import android.app.Application
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
-import org.acra.config.*
-import org.acra.data.StringFormat
-import org.acra.ktx.initAcra
 
 
 class MyApplication : Application()

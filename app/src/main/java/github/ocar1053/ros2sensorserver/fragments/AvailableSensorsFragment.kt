@@ -1,4 +1,4 @@
-package github.umer0586.sensorserver.fragments
+package github.ocar1053.ros2sensorserver.fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -11,7 +11,7 @@ import android.widget.ListView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.ListFragment
-import github.umer0586.sensorserver.R
+import github.ocar1053.ros2sensorserver.R
 
 // Custom data class representing a ROS topic with its type
 data class RosTopic(

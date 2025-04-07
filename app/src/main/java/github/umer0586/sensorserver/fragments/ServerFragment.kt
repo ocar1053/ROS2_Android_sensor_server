@@ -152,20 +152,27 @@ class ServerFragment : Fragment() {
                     showPulseAnimation()
                     connectToRosbridge = true
                     //advertised
-                    websocketService?.advertiseTopic("/step_counter", "std_msgs/Int32")
-                    websocketService?.advertiseTopic("/gps/fix", "sensor_msgs/msg/NavSatFix")
+
                     websocketService?.advertiseTopic("/imu/data", "sensor_msgs/msg/Imu")
                     websocketService?.advertiseTopic("/odom", "nav_msgs/msg/Odometry")
-                    // initial
+                    websocketService?.advertiseTopic("/step_counter", "std_msgs/Int32")
+                    websocketService?.advertiseTopic("/gps/fix", "sensor_msgs/msg/NavSatFix")
+
+                    // Add delay to allow rosbridge to advertise topics properly
+                    delay(1000)
+
+                    // Now initialize and start the sensor handlers
                     stepCounterHandler = StepCounterHandler(sensorManager ,requireContext()) { currentStepCount ->
                         val stepData = org.json.JSONObject().apply {
                             put("data", currentStepCount)
                         }
                         websocketService?.publishMessage("/step_counter", stepData)
                     }
+
                     OdometryHandler = OdometryHandler((requireContext()),sensorManager) { odometryData ->
                         websocketService?.publishMessage("/odom", odometryData)
                     }
+
                     GpsHandler = GpsHandler(requireContext(),OdometryHandler) { location ->
                         val gpsData = org.json.JSONObject().apply {
                             // header for time and frame_id

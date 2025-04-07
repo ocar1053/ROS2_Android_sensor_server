@@ -44,3 +44,10 @@ The modifications enable an Android device to send sensor data directly to rosbr
 ## License
 
 This project is forked from [SensorServer](https://github.com/umer0586/SensorServer) by Umer Farooq and is distributed under the same license as the original project, the GPL-3.0 license. Please see the [LICENSE](LICENSE) file for details.
+
+
+## Intended Use
+
+This project is intended for academic research and educational purposes only.  
+
+For further inquiries or additional information, please contact me at [ocar8951@gmail.com](mailto:ocar8951@gmail.com).

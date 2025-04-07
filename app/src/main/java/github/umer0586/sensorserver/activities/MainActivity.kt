@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
         // Fragments Positions
         private const val POSITION_SERVER_FRAGMENT = 0
-        private const val POSITION_AVAILABLE_SENSORS_FRAGMENT = 2
+        private const val POSITION_AVAILABLE_SENSORS_FRAGMENT = 1
     }
 
     override fun onCreate(savedInstanceState: Bundle?)
@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             R.id.navigation_available_sensors ->
             {
                 binding.dashboard.viewPager.setCurrentItem(POSITION_AVAILABLE_SENSORS_FRAGMENT, false)
-                supportActionBar?.title = "Available Sensors"
+                supportActionBar?.title = "Available Topics"
                 return true
             }
 
@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
         override fun getItemCount(): Int
         {
-            return 3
+            return 2
         }
     }
 

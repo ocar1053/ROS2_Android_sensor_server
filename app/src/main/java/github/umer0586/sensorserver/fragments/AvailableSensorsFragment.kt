@@ -1,108 +1,88 @@
 package github.umer0586.sensorserver.fragments
 
-import android.content.*
-import android.hardware.Sensor
-import android.hardware.SensorManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.ListView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.ListFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import github.umer0586.sensorserver.R
 
-class AvailableSensorsFragment : ListFragment()
-{
+// Custom data class representing a ROS topic with its type
+data class RosTopic(
+    val topicName: String,
+    val type: String,
+)
 
-    override fun onCreateView( inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View?
-    {
-        Log.i(TAG, "onCreateView: ")
-        // Inflate the layout for this fragment
+class AvailableSensorsFragment : ListFragment() {
+
+    // Define the list of ROS topics to be displayed
+    private val rosTopics: List<RosTopic> = listOf(
+        RosTopic("/step_counter", "std_msgs/Int32"),
+        RosTopic("/gps/fix", "sensor_msgs/msg/NavSatFix"),
+        RosTopic("/imu/data", "sensor_msgs/msg/Imu"),
+        RosTopic("/odom", "nav_msgs/msg/Odometry")
+    )
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View? {
+        Log.i(TAG, "onCreateView:")
+        // Inflate the layout for this fragment (make sure fragment_available_sensors.xml exists)
         return inflater.inflate(R.layout.fragment_available_sensors, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?)
-    {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.i(TAG, "onViewCreated: ")
+        Log.i(TAG, "onViewCreated:")
 
-        val sensorManager = requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val availableSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL).filter{ it.reportingMode != Sensor.REPORTING_MODE_ONE_SHOT}
-
-
-        val sensorsListAdapter = SensorsListAdapter(requireContext(), availableSensors)
-        listView.adapter = sensorsListAdapter
+        // Set up the adapter with the list of ROS topics using the original adapter structure
+        val topicsListAdapter = SensorsListAdapter(requireContext(), rosTopics)
+        listView.adapter = topicsListAdapter
     }
 
-    override fun onListItemClick(l: ListView, v: View, position: Int, id: Long)
-    {
-        super.onListItemClick(l, v, position, id)
-
-        val sensor = v.tag as Sensor
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Sensor Info")
-            .setMessage(sensor.detail())
-            .show()
+    // Override onListItemClick but perform no action when an item is clicked
+    override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+        // No action on item click
     }
 
-    private inner class SensorsListAdapter(context: Context, sensors: List<Sensor>) :  ArrayAdapter<Sensor?>(context, R.layout.item_sensor, sensors)
-    {
+    // Original adapter structure modified to work with RosTopic instead of Sensor
+    private inner class SensorsListAdapter(context: Context, topics: List<RosTopic>) :
+        ArrayAdapter<RosTopic>(context, R.layout.item_sensor, topics) {
 
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
-        {
-            val view: View = convertView ?: layoutInflater.inflate( R.layout.item_sensor, parent,false)
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            // Reuse convertView if available, otherwise inflate a new view from item_sensor.xml
+            val view: View = convertView ?: layoutInflater.inflate(R.layout.item_sensor, parent, false)
 
-            val sensor = getItem(position)
-            val sensorName = view.findViewById<AppCompatTextView>(R.id.sensor_name)
-            val sensorType = view.findViewById<AppCompatTextView>(R.id.sensor_type)
+            // Get the current ROS topic item
+            val topic = getItem(position)
+            // Find TextViews for displaying the topic name and type
+            // Assumes item_sensor.xml contains TextViews with IDs sensor_name and sensor_type
+            val topicNameTextView = view.findViewById<AppCompatTextView>(R.id.sensor_name)
+            val topicTypeTextView = view.findViewById<AppCompatTextView>(R.id.sensor_type)
 
-            sensor?.let {
-
-                sensorName.text = sensor.name
-                sensorType.text = HtmlCompat.fromHtml("<font color=\"#5c6bc0\"><b>Type = </b></font>" + sensor.stringType,HtmlCompat.FROM_HTML_MODE_LEGACY)
-
+            topic?.let {
+                // Set the topic name
+                topicNameTextView.text = it.topicName
+                // Display the topic type with formatted text using HtmlCompat
+                topicTypeTextView.text = HtmlCompat.fromHtml(
+                    "<font color=\"#5c6bc0\"><b>Type = </b></font>" + it.type,
+                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                )
             }
 
-            view.tag = sensor
+            // Set the tag for the view (optional)
+            view.tag = topic
             return view
         }
     }
 
-    companion object
-    {
-
-        private val TAG: String = AvailableSensorsFragment::class.java.getSimpleName()
-
+    companion object {
+        private val TAG: String = AvailableSensorsFragment::class.java.simpleName
     }
-}
-
-fun Sensor.detail(): String
-{
-
-    val reportingModeMapping = mapOf(
-        Sensor.REPORTING_MODE_CONTINUOUS to "Continuous",
-        Sensor.REPORTING_MODE_ON_CHANGE to "On Change",
-        Sensor.REPORTING_MODE_ONE_SHOT to "One Shot",
-        Sensor.REPORTING_MODE_SPECIAL_TRIGGER to "Special Trigger",
-    )
-
-
-    return """
-    Name : $name
-    MinDelay : ${minDelay}μs
-    MaxDelay : ${maxDelay}μs 
-    MaxRange : $maximumRange
-    Resolution : $resolution
-    Reporting Mode : ${if (reportingModeMapping.containsKey(reportingMode)) reportingModeMapping[reportingMode] else "Unknown"}
-    Power : ${power}mA
-    Vendor : $vendor
-    Version : $version
-    WakeUp sensor : $isWakeUpSensor        
-   
-    """.trimIndent()
 }

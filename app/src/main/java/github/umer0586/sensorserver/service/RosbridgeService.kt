@@ -71,7 +71,7 @@ class RosbridgeService : Service() {
         val advertiseMessage = JSONObject()
         advertiseMessage.put("op", "advertise")
         advertiseMessage.put("topic", topicName)
-        advertiseMessage.put("type", messageType) // 例如 "std_msgs/Int32"
+        advertiseMessage.put("type", messageType)
         webSocket?.send(advertiseMessage.toString())
     }
 
